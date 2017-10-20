@@ -138,7 +138,7 @@ function getInputs()
 				distx = math.abs(sprites[i]["x"] - (megaX+dx))
 				disty = math.abs(sprites[i]["y"] - (megaY+dy))
 				if distx <= 8 and disty <= 8 then
-					print("ay")
+					console.writeline("ay")
 					inputs[#inputs] = -1
 				end
 			end
@@ -153,65 +153,65 @@ function getInputs()
 		end
 	end
 	
-	-- print("Camera X pos:"..camX)		-- camera xpos
-	print("X Sprite pos:"..megaX)						-- mega man x position
+	-- console.writeline("Camera X pos:"..camX)		-- camera xpos
+	console.writeline("X Sprite pos:"..megaX)						-- mega man x position
 	if #sprites > 0 and sprites[1]["x"] ~= 0 then
 		-- for i=1,#sprites do
-			-- print(sprites[i]["x"])
-			-- print(megaX)
+			-- console.writeline(sprites[i]["x"])
+			-- console.writeline(megaX)
 		-- end
-		-- print("distx:"..distx)
-		-- print("disty:"..disty)
-		-- print("")
-		print("starting")
-		-- print(memory.readbyte(0x0e68))	-- object exists or not
-		-- print(memory.readbyte(0x0e69))	-- objects action 1
-		-- print(memory.readbyte(0x0e6a))	-- objects action 2
-		-- print(memory.readbyte(0x0e6b))	-- ???
-		-- print(memory.readbyte(0x0e6c))	-- sub-pixel xpos
-		-- print("Camera X pos:"..memory.readbyte(0x00b4))		-- camera xpos
-		print("first xpos:"..memory.readbyte(0x0e6d))	-- xpos in pixels 	--if you see above i was using address 22 bytes away from 
+		-- console.writeline("distx:"..distx)
+		-- console.writeline("disty:"..disty)
+		-- console.writeline("")
+		console.writeline("starting")
+		-- console.writeline(memory.readbyte(0x0e68))	-- object exists or not
+		-- console.writeline(memory.readbyte(0x0e69))	-- objects action 1
+		-- console.writeline(memory.readbyte(0x0e6a))	-- objects action 2
+		-- console.writeline(memory.readbyte(0x0e6b))	-- ???
+		-- console.writeline(memory.readbyte(0x0e6c))	-- sub-pixel xpos
+		-- console.writeline("Camera X pos:"..memory.readbyte(0x00b4))		-- camera xpos
+		console.writeline("first xpos:"..memory.readbyte(0x0e6d))	-- xpos in pixels 	--if you see above i was using address 22 bytes away from 
 						--					the enemy address putting me at a different address that 
 						--					is listed as having the same title.  I am curious as to 
 						--					whether or not there is a diffence in each value.
 		-- gui.text(megaX, megaY, "x")
 		-- gui.text(megaX-camX, megaY-camY, "X")
-		-- print(memory.readbyte(0x0e6e))	-- ???
-		-- print(memory.readbyte(0x0e6f))	-- sub-pixel ypos
-		-- print(memory.readbyte(0x0e70))	-- ypos in pixels	-- see abov xpos in pixels
-		-- print(memory.readbyte(0x0e71))	-- ???
-		-- print(memory.readbyte(0x0e72))	-- object ID
-		-- print(memory.readbyte(0x0e73))	-- ???
-		-- print(memory.readbyte(0x0e74))	-- ???
-		-- print(memory.readbyte(0x0e75))	-- ???
-		-- print(memory.readbyte(0x0e76))	-- ???
-		-- print(memory.readbyte(0x0e77))	-- ???
-		-- print(memory.readbyte(0x0e78))	-- ???
-		-- print(memory.readbyte(0x0e79))	-- ???
-		-- print(memory.readbyte(0x0e7a))	-- ???
-		-- print(memory.readbyte(0x0e7b))	-- Animation countain
-		-- print(memory.readbyte(0x0e7c))	-- ???
-		-- print(memory.readbyte(0x0e7d))	-- ???
-		-- print(memory.readbyte(0x0e7e))	-- ???
-		-- print(memory.readbyte(0x0e7f))	-- Object sprite
-		-- print(memory.readbyte(0x0e80))	-- ???
-		-- print(memory.readbyte(0x0e81))	-- ???
-		-- print(memory.readbyte(0x0e82))	-- xvelocity, sub-pixel per frame
-		-- print(memory.readbyte(0x0e83))	-- ???
-		-- print(memory.readbyte(0x0e84))	-- yvelocity, negative sub-pixel per frame 
-		-- print(memory.readbyte(0x0e85))	-- ???
-		-- print(memory.readbyte(0x0e86))	-- y-acceleration, sub-pixels per frame per frame
-		-- print(memory.readbyte(0x0e87))	-- ???
-		-- print(memory.readbyte(0x0e88))	-- ???
-		-- print(memory.readbyte(0x0e89))	-- ???
-		-- print("second xpos:"..memory.readbyte(0x0e8a))	-- xpos in pixels
-		-- print(memory.readbyte(0x0e8b))	-- ???
-		-- print(memory.readbyte(0x0e8c))	-- ypos in pixels
-		-- print(memory.readbyte(0x0e8d))	-- ???
-		-- print(memory.readbyte(0x0e8e))	-- ???
-		-- print(memory.readbyte(0x0e8f))	-- current health
-		-- print(memory.readbyte(0x0e90))	-- unknown -24 bytes
-		print("done")
+		-- console.writeline(memory.readbyte(0x0e6e))	-- ???
+		-- console.writeline(memory.readbyte(0x0e6f))	-- sub-pixel ypos
+		-- console.writeline(memory.readbyte(0x0e70))	-- ypos in pixels	-- see abov xpos in pixels
+		-- console.writeline(memory.readbyte(0x0e71))	-- ???
+		-- console.writeline(memory.readbyte(0x0e72))	-- object ID
+		-- console.writeline(memory.readbyte(0x0e73))	-- ???
+		-- console.writeline(memory.readbyte(0x0e74))	-- ???
+		-- console.writeline(memory.readbyte(0x0e75))	-- ???
+		-- console.writeline(memory.readbyte(0x0e76))	-- ???
+		-- console.writeline(memory.readbyte(0x0e77))	-- ???
+		-- console.writeline(memory.readbyte(0x0e78))	-- ???
+		-- console.writeline(memory.readbyte(0x0e79))	-- ???
+		-- console.writeline(memory.readbyte(0x0e7a))	-- ???
+		-- console.writeline(memory.readbyte(0x0e7b))	-- Animation countain
+		-- console.writeline(memory.readbyte(0x0e7c))	-- ???
+		-- console.writeline(memory.readbyte(0x0e7d))	-- ???
+		-- console.writeline(memory.readbyte(0x0e7e))	-- ???
+		-- console.writeline(memory.readbyte(0x0e7f))	-- Object sprite
+		-- console.writeline(memory.readbyte(0x0e80))	-- ???
+		-- console.writeline(memory.readbyte(0x0e81))	-- ???
+		-- console.writeline(memory.readbyte(0x0e82))	-- xvelocity, sub-pixel per frame
+		-- console.writeline(memory.readbyte(0x0e83))	-- ???
+		-- console.writeline(memory.readbyte(0x0e84))	-- yvelocity, negative sub-pixel per frame 
+		-- console.writeline(memory.readbyte(0x0e85))	-- ???
+		-- console.writeline(memory.readbyte(0x0e86))	-- y-acceleration, sub-pixels per frame per frame
+		-- console.writeline(memory.readbyte(0x0e87))	-- ???
+		-- console.writeline(memory.readbyte(0x0e88))	-- ???
+		-- console.writeline(memory.readbyte(0x0e89))	-- ???
+		-- console.writeline("second xpos:"..memory.readbyte(0x0e8a))	-- xpos in pixels
+		-- console.writeline(memory.readbyte(0x0e8b))	-- ???
+		-- console.writeline(memory.readbyte(0x0e8c))	-- ypos in pixels
+		-- console.writeline(memory.readbyte(0x0e8d))	-- ???
+		-- console.writeline(memory.readbyte(0x0e8e))	-- ???
+		-- console.writeline(memory.readbyte(0x0e8f))	-- current health
+		-- console.writeline(memory.readbyte(0x0e90))	-- unknown -24 bytes
+		console.writeline("done")
 	end
 	
 	return inputs
