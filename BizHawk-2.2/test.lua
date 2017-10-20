@@ -47,12 +47,26 @@ TimeoutConstant = 20
 
 MaxNodes = 1000000
 
+--position of camera
+camX = 0
+camY = 0
+
 
 function getPositions()
 	megaHealth = memory.read_s16_le(0x0bcf)
 	if gameinfo.getromname() == "Mega Man X (USA)" then
 		megaX = memory.read_s16_le(0x0bad)
 		megaY = memory.read_s16_le(0x0bb0)
+		
+		tempCamX = memory.readbyte(0x00b4)
+		tempCamY = memory.readbyte(0x00b6)
+		if tempCamX < camX then
+			camX = camX + tempCamX
+			camY = camY + tempCamY
+		else
+			camX = tempCamX
+			camY = tempCamY
+		end
 	end
 end
 
@@ -63,7 +77,7 @@ function getTile(dx, dy)
 	if gameinfo.getromname() == "Mega Man X (USA)" then	
 		x = math.floor((megaX+dx+8)/16)
 		y = math.floor((megaY+dy)/16)
-		
+		-- gui.text(x,y,"x")
 		return memory.readbyte(0x1C800 + math.floor(x/0x10)*0x1B0 + y*0x10 + x%0x10)
 	end
 end
@@ -139,10 +153,65 @@ function getInputs()
 		end
 	end
 	
-	if #sprites > 0 then
+	-- print("Camera X pos:"..camX)		-- camera xpos
+	print("X Sprite pos:"..megaX)						-- mega man x position
+	if #sprites > 0 and sprites[1]["x"] ~= 0 then
+		-- for i=1,#sprites do
+			-- print(sprites[i]["x"])
+			-- print(megaX)
+		-- end
 		-- print("distx:"..distx)
 		-- print("disty:"..disty)
 		-- print("")
+		print("starting")
+		-- print(memory.readbyte(0x0e68))	-- object exists or not
+		-- print(memory.readbyte(0x0e69))	-- objects action 1
+		-- print(memory.readbyte(0x0e6a))	-- objects action 2
+		-- print(memory.readbyte(0x0e6b))	-- ???
+		-- print(memory.readbyte(0x0e6c))	-- sub-pixel xpos
+		-- print("Camera X pos:"..memory.readbyte(0x00b4))		-- camera xpos
+		print("first xpos:"..memory.readbyte(0x0e6d))	-- xpos in pixels 	--if you see above i was using address 22 bytes away from 
+						--					the enemy address putting me at a different address that 
+						--					is listed as having the same title.  I am curious as to 
+						--					whether or not there is a diffence in each value.
+		-- gui.text(megaX, megaY, "x")
+		-- gui.text(megaX-camX, megaY-camY, "X")
+		-- print(memory.readbyte(0x0e6e))	-- ???
+		-- print(memory.readbyte(0x0e6f))	-- sub-pixel ypos
+		-- print(memory.readbyte(0x0e70))	-- ypos in pixels	-- see abov xpos in pixels
+		-- print(memory.readbyte(0x0e71))	-- ???
+		-- print(memory.readbyte(0x0e72))	-- object ID
+		-- print(memory.readbyte(0x0e73))	-- ???
+		-- print(memory.readbyte(0x0e74))	-- ???
+		-- print(memory.readbyte(0x0e75))	-- ???
+		-- print(memory.readbyte(0x0e76))	-- ???
+		-- print(memory.readbyte(0x0e77))	-- ???
+		-- print(memory.readbyte(0x0e78))	-- ???
+		-- print(memory.readbyte(0x0e79))	-- ???
+		-- print(memory.readbyte(0x0e7a))	-- ???
+		-- print(memory.readbyte(0x0e7b))	-- Animation countain
+		-- print(memory.readbyte(0x0e7c))	-- ???
+		-- print(memory.readbyte(0x0e7d))	-- ???
+		-- print(memory.readbyte(0x0e7e))	-- ???
+		-- print(memory.readbyte(0x0e7f))	-- Object sprite
+		-- print(memory.readbyte(0x0e80))	-- ???
+		-- print(memory.readbyte(0x0e81))	-- ???
+		-- print(memory.readbyte(0x0e82))	-- xvelocity, sub-pixel per frame
+		-- print(memory.readbyte(0x0e83))	-- ???
+		-- print(memory.readbyte(0x0e84))	-- yvelocity, negative sub-pixel per frame 
+		-- print(memory.readbyte(0x0e85))	-- ???
+		-- print(memory.readbyte(0x0e86))	-- y-acceleration, sub-pixels per frame per frame
+		-- print(memory.readbyte(0x0e87))	-- ???
+		-- print(memory.readbyte(0x0e88))	-- ???
+		-- print(memory.readbyte(0x0e89))	-- ???
+		-- print("second xpos:"..memory.readbyte(0x0e8a))	-- xpos in pixels
+		-- print(memory.readbyte(0x0e8b))	-- ???
+		-- print(memory.readbyte(0x0e8c))	-- ypos in pixels
+		-- print(memory.readbyte(0x0e8d))	-- ???
+		-- print(memory.readbyte(0x0e8e))	-- ???
+		-- print(memory.readbyte(0x0e8f))	-- current health
+		-- print(memory.readbyte(0x0e90))	-- unknown -24 bytes
+		print("done")
 	end
 	
 	return inputs
@@ -1158,7 +1227,7 @@ while true do
 			-- fitness = fitness + 1000
 		-- end
 		
-		-- maybe here
+		-- maybe here... honestly don't know what I meant here.. -_-
 		if fitness == 0 then
 			fitness = -1
 		end
