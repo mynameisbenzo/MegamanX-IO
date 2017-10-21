@@ -95,22 +95,14 @@ MaxNodes = 1000000
 camX = 0
 camY = 0
 
-
 function getPositions()
 	megaHealth = memory.read_s16_le(0x0bcf)
 	if gameinfo.getromname() == "Mega Man X (USA)" then
 		megaX = memory.read_s16_le(0x0bad)
 		megaY = memory.read_s16_le(0x0bb0)
 		
-		-- tempCamX = memory.readbyte(0x00b4)
-		-- tempCamY = memory.readbyte(0x00b6)
-		-- if tempCamX < camX then
-			-- camX = camX + tempCamX
-			-- camY = camY + tempCamY
-		-- else
-			-- camX = tempCamX
-			-- camY = tempCamY
-		-- end
+		camX = memory.read_s16_le(0x00b4)
+		camY = memory.read_s16_le(0x00b6)
 	end
 end
 
@@ -1224,6 +1216,12 @@ decrement = 0
 dead = false
 -- megaman's last X position
 lastX = 0
+xMoved = false
+-- the camera's last position
+lastCamX = 0
+camMoved = false
+-- reset of too negative
+tooNegative = false
 --------------------------------------------------------------------------------------------
 -- This is where the action starts! 
 --------------------------------------------------------------------------------------------
@@ -1257,13 +1255,37 @@ while true do
 	---------------------------------------------------------------------------------------
 	-- gets how far right it has moved
 	getPositions()
-	if megaX > rightmost then
-		rightmost = megaX
-		timeout = TimeoutConstant
+	
+	-- if current position is greater than right most than reset timeconstant and 
+	-- set rightmost to current position.
+	-- this needs to be changed for Mega Man X
+	---- is there an enemy on the screen?
+	---- is the camera's position not moving?
+	---- check x's last position in relation to his current
+	---- has he moved? ok now check the camera
+	---- has it moved? ok if both are moving then reset time
+	----
+	if camX ~= lastCamX then
+		lastCamX = camX
+		camMoved = true
+	else
+		camMoved = false
+	end
+	if megaX ~= lastX then
+		if megaX > lastX then
+			rightmost = megaX
+			timeout = TimeoutConstant
+		elseif not camMoved then
+			timeout = TimeoutConstant
+		end
 	end
 	---------------------------------------------------------------------------------------
-	
-	
+	--- 1936 ?
+	--- something weird happened at 1941
+	--- 1942 - charge up animation?
+	if memory.read_s16_le(0x1942) > 0 then
+		-- print("boom")
+	end
 	timeout = timeout - 1
 	
 	---------------------------------------------------------------------------------------
@@ -1271,12 +1293,13 @@ while true do
 	local health = memory.readbyte(0x0bcf)
 	if(health < lastHealth) then
 		decrement = decrement + (lastHealth - health)
+	elseif (health > lastHealth) then
+		decrement = decrement - (lastHealth - health)
 	end
 	-- decrement = lastHealth - health
 	if(memory.readbyte(0x0bcf) <= 16) then
 		lastHealth = memory.readbyte(0x0bcf)
 	end
-	
 	---------------------------------------------------------------------------------------
 	--
 	
@@ -1285,13 +1308,22 @@ while true do
 	lastLife = memory.readbyte(0x1f90)
 	dead = (lastHealth == 0) and (lastLife == 0)
 	
+
+
+	local timeoutBonus = pool.currentFrame / 4 
+	
+	-- is Mega Man X just STANDING there.. -_-
+	if math.floor(rightmost - (pool.currentFrame) / 2 - (timeout + timeoutBonus)*2/3) < -500 then
+		tooNegative = true
+	else
+		tooNegative = false
+	end
 	---------------------------------------------------------------------------------------
 	-- it looks as though the following if statement determines if megaman is moving 
 	-- forward consistently.  If there is a stop, or, say, he is jumping on a wall and 
 	-- moving up but not forward, then the genome is reset
 	---------------------------------------------------------------------------------------
-	local timeoutBonus = pool.currentFrame / 4 
-	if dead or timeout + timeoutBonus <= 0 then
+	if dead or tooNegative or timeout + timeoutBonus <= 0 then
 		-- print("Timeout"..timeout)
 		-- print("Bonus"..timeoutBonus)
 		-- print("Constant"..TimeoutConstant)

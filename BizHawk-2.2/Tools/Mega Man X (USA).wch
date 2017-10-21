@@ -2,4 +2,32 @@ SystemID SNES
 000C13	w	u	0	WRAM	RECOVERY ANIMATION
 001F80	w	u	0	WRAM	LIFE COUNTER
 000BCF	w	u	0	WRAM	CURRENT HEALTH
+001945	w	u	0	WRAM	Possibly Explosion
+001946	w	u	0	WRAM	Possibly explosion
+001947	w	u	0	WRAM	enemy hit/background sprite
+001948	w	u	0	WRAM	not sure but see above
+001949	w	u	0	WRAM	see above
+00194B	w	u	0	WRAM	looks like it's foreground sprites
+00194C	w	u	0	WRAM	
+00194D	w	u	0	WRAM	
+00194E	w	u	0	WRAM	
+00194F	w	u	0	WRAM	
+001950	w	u	0	WRAM	
+001951	w	u	0	WRAM	
+001952	w	u	0	WRAM	
+000E68	w	u	0	WRAM	
+001953	w	u	0	WRAM	
+001954	w	u	0	WRAM	
+001955	w	u	0	WRAM	IS THIS THE FATED ENEMY EXPLOSION!?!?!
+001957	w	u	0	WRAM	
+001958	w	u	0	WRAM	
+001959	w	u	0	WRAM	
+001960	w	u	0	WRAM	
+001961	w	u	0	WRAM	
+001962	w	u	0	WRAM	
+001963	w	u	0	WRAM	
+001F7A	w	u	0	WRAM	
+001F7B	w	u	0	WRAM	
+001ED2	w	u	0	WRAM	
+001628	w	u	0	WRAM	
 
