@@ -5,39 +5,48 @@
 -- and put a copy in both the Lua folder and the root directory of BizHawk.
 
 -- ADDRESSES TO NOTE:
--- 0c13 is recovery animation.  					Why is it noteworthy? 	For every frame this is active decrement fitness. 
---																			(it's initial value is 60 unsure whether this is 
---																			based on frames)
+-- 0c13 is recovery animation.  					
+-- Why is it noteworthy? 	
+---- For every frame this is active decrement fitness. 
+---- (it's initial value is 60 unsure whether this is 
+---- based on frames)
 
--- 1f80 is life counter.							Why is it noteworthy? 	Increase time before moving into next genome.  
---																			Check to see if life counter is zero before dying 
---																			and then add move into next genome there as well
+-- 1f80 is life counter.							
+-- Why is it noteworthy? 	
+---- Increase time before moving into next genome.  
+---- Check to see if life counter is zero before dying 
+---- and then add move into next genome there as well
 
--- 0bcf	is current health.							Why is it noteworthy? 	Current health is less than it was last time? 
---																			Terrible! You're not fit! Current health more than 
---																			it is last time? Oh great! Good job!
+-- 0bcf	is current health.							
+-- Why is it noteworthy? 	
+---- Current health is less than it was last time? 
+---- Terrible! You're not fit! Current health more than 
+---- it is last time? Oh great! Good job!
 
--- 1928 COULD BE enemy hit or exploding animation.	Why is it noteworthy? 	We could possibly use this to increment fitness.  
---																			Blow up a bad guy?
---																			good for you Mega Bot!
+-- 1928 COULD BE enemy hit or exploding animation.	
+-- Why is it noteworthy? 	
+---- We could possibly use this to increment fitness.  
+---- Blow up a bad guy? good for you Mega Bot!
 
 -- REVELATIONS:
--- Lorenzo - 10-20-17:								To be honest, idk what a lot of these Lua functions do, but I just realized
---													there's a difference in read_s16_le and readbyte.  WHAT THAT DIFFERENCE IS!?!?
---													I'll have to look it up. -_-
+-- Lorenzo - 10-20-17:								
+-- 
+-- To be honest, idk what a lot of these Lua functions do, but I just realized
+-- there's a difference in read_s16_le and readbyte.  WHAT THAT DIFFERENCE IS!?!?
+-- I'll have to look it up. -_-
 -- ^update:											
---			readbyte gets mega man x's position in
---			relation to the camera.  read_s16_le
---			gets how far he's travelled forward in 
---			total. 
---			Here's something nice:
---				If I use read_s16_le to get enemy 
---			sprites, then suddenly they are seen in
---			the gui box.
---			Thought:
---				read_s16_le might be the way to go.
+------ readbyte gets mega man x's position in
+------ relation to the camera.  read_s16_le
+------ gets how far he's travelled forward in 
+------ total. 
+------ Here's something nice:
+------ 	If I use read_s16_le to get enemy 
+------ sprites, then suddenly they are seen in
+------ the gui box.
+------ Thought:
+------ 	read_s16_le might be the way to go.
 -- Summation:
---			¯\_(ツ)_/¯ TRIAL AND ERROR, BAYBEE!!!!!
+------ ¯\_(ツ)_/¯ TRIAL AND ERROR, BAYBEE!!!!!
 
 if gameinfo.getromname() == "Mega Man X (USA)" then
 	Filename = "DP2.state"
