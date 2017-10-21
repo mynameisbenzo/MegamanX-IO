@@ -20,6 +20,23 @@
 -- 1928 COULD BE enemy hit or exploding animation.	Why is it noteworthy? 	We could possibly use this to increment fitness.  
 --																			Blow up a bad guy?
 --																			good for you Mega Bot!
+
+-- REVELATIONS:
+-- Lorenzo - 10-20-17:								To be honest, idk what a lot of these Lua functions do, but I just realized
+--													there's a difference in read_s16_le and readbyte.  WHAT THAT DIFFERENCE IS!?!?
+--													I'll have to look it up. -_-
+-- ^update:											
+--			readbyte gets mega man x's position in
+--			relation to the camera.  read_s16_le
+--			gets how far he's travelled forward in 
+--			total. 
+--			Here's the kicker:
+--				If I use read_s16_le to get enemy 
+--			sprites, then suddenly they are seen in
+--			the gui box.
+-- Summation:
+--			¯\_(ツ)_/¯ TRIAL AND ERROR, BAYBEE!!!!!
+
 if gameinfo.getromname() == "Mega Man X (USA)" then
 	Filename = "DP2.state"
 	ButtonNames = {
@@ -59,7 +76,7 @@ StepSize = 0.1
 DisableMutationChance = 0.4
 EnableMutationChance = 0.2
 
-TimeoutConstant = 20
+TimeoutConstant = 40
 
 MaxNodes = 1000000
 
@@ -74,15 +91,15 @@ function getPositions()
 		megaX = memory.read_s16_le(0x0bad)
 		megaY = memory.read_s16_le(0x0bb0)
 		
-		tempCamX = memory.readbyte(0x00b4)
-		tempCamY = memory.readbyte(0x00b6)
-		if tempCamX < camX then
-			camX = camX + tempCamX
-			camY = camY + tempCamY
-		else
-			camX = tempCamX
-			camY = tempCamY
-		end
+		-- tempCamX = memory.readbyte(0x00b4)
+		-- tempCamY = memory.readbyte(0x00b6)
+		-- if tempCamX < camX then
+			-- camX = camX + tempCamX
+			-- camY = camY + tempCamY
+		-- else
+			-- camX = tempCamX
+			-- camY = tempCamY
+		-- end
 	end
 end
 
@@ -94,7 +111,7 @@ function getTile(dx, dy)
 		x = math.floor((megaX+dx+8)/16)
 		y = math.floor((megaY+dy)/16)
 		-- gui.text(x,y,"x")
-		return memory.readbyte(0x1C800 + math.floor(x/0x10)*0x1B0 + y*0x10 + x%0x10)
+		return memory.read_s16_le(0x1C800 + math.floor(x/0x10)*0x1B0 + y*0x10 + x%0x10)
 	end
 end
 
@@ -105,10 +122,10 @@ function getSprites()
 	if gameinfo.getromname() == "Mega Man X (USA)" then
 		local sprites = {}
 		for slot=0,15 do
-			local number = memory.readbyte(0x0E68+(slot*64))
+			local number = memory.read_s16_le(0x0E68+(slot*64))
 			if number ~= 0 then
-				spritex = memory.readbyte(0x0E68+0x22)
-				spritey = memory.readbyte(0x0E68+0x24)
+				spritex = memory.read_s16_le(0x0E68+0x22)
+				spritey = memory.read_s16_le(0x0E68+0x24)
 				sprites[#sprites+1] = {["x"]=spritex, ["y"]=spritey}
 			end
 		end		
@@ -154,7 +171,6 @@ function getInputs()
 				distx = math.abs(sprites[i]["x"] - (megaX+dx))
 				disty = math.abs(sprites[i]["y"] - (megaY+dy))
 				if distx <= 8 and disty <= 8 then
-					console.writeline("ay")
 					inputs[#inputs] = -1
 				end
 			end
@@ -220,7 +236,7 @@ function getInputs()
 		-- console.writeline(memory.readbyte(0x0e87))	-- ???
 		-- console.writeline(memory.readbyte(0x0e88))	-- ???
 		-- console.writeline(memory.readbyte(0x0e89))	-- ???
-		-- console.writeline("second xpos:"..memory.readbyte(0x0e8a))	-- xpos in pixels
+		-- console.writeline("second xpos:"..memory.read_s16_le(0x0e8a))	-- xpos in pixels
 		-- console.writeline(memory.readbyte(0x0e8b))	-- ???
 		-- console.writeline(memory.readbyte(0x0e8c))	-- ypos in pixels
 		-- console.writeline(memory.readbyte(0x0e8d))	-- ???
@@ -1192,8 +1208,11 @@ lastHealth = memory.readbyte(0x0bcf)
 -- life counter
 lastLife = memory.readbyte(0x1f90)
 -- ouch animation
-ouch = 0
-
+decrement = 0
+-- megaman is alive
+dead = false
+-- megaman's last X position
+lastX = 0
 --------------------------------------------------------------------------------------------
 -- This is where the action starts! 
 --------------------------------------------------------------------------------------------
@@ -1233,38 +1252,47 @@ while true do
 	end
 	---------------------------------------------------------------------------------------
 	
+	
 	timeout = timeout - 1
 	
 	---------------------------------------------------------------------------------------
 	-- checking if current health is the same as last health
 	local health = memory.readbyte(0x0bcf)
 	if(health < lastHealth) then
-		console.writeline(lastHealth- health)
-		lastHealth = health
+		decrement = decrement + (lastHealth - health)
+	end
+	-- decrement = lastHealth - health
+	if(memory.readbyte(0x0bcf) <= 16) then
+		lastHealth = memory.readbyte(0x0bcf)
 	end
 	
 	---------------------------------------------------------------------------------------
 	--
-	if(memory.readbyte(0xc13) < 1) then
-		ouch = ouch + 1
-	end
+	
+	---------------------------------------------------------------------------------------
+	-- is megaman alive?
+	lastLife = memory.readbyte(0x1f90)
+	dead = (lastHealth == 0) and (lastLife == 0)
 	
 	---------------------------------------------------------------------------------------
 	-- it looks as though the following if statement determines if megaman is moving 
 	-- forward consistently.  If there is a stop, or, say, he is jumping on a wall and 
 	-- moving up but not forward, then the genome is reset
 	---------------------------------------------------------------------------------------
-	local timeoutBonus = pool.currentFrame / 4
-	if timeout + timeoutBonus <= 0 then
+	local timeoutBonus = pool.currentFrame / 4 
+	if dead or timeout + timeoutBonus <= 0 then
+		-- print("Timeout"..timeout)
+		-- print("Bonus"..timeoutBonus)
+		-- print("Constant"..TimeoutConstant)
+		rightmost = rightmost - decrement 
+		decrement = 0
 		local fitness = rightmost - pool.currentFrame / 2
-		console.writeline(health)
+		lastHealth = 0 
 		-- the following code looks like it was more useful for Super Mario World
 		
 		-- if gameinfo.getromname() == "Mega Man X (USA)" and rightmost > 4816 then
 			-- fitness = fitness + 1000
 		-- end
-		
-		
 		
 		-- maybe here... honestly don't know what I meant here.. -_-
 		if fitness == 0 then
@@ -1290,7 +1318,6 @@ while true do
 		initializeRun()
 	end
 	---------------------------------------------------------------------------------------
-	
 	---------------------------------------------------------------------------------------
 	local measured = 0
 	local total = 0
