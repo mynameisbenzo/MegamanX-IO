@@ -30,10 +30,12 @@
 --			relation to the camera.  read_s16_le
 --			gets how far he's travelled forward in 
 --			total. 
---			Here's the kicker:
+--			Here's something nice:
 --				If I use read_s16_le to get enemy 
 --			sprites, then suddenly they are seen in
 --			the gui box.
+--			Thought:
+--				read_s16_le might be the way to go.
 -- Summation:
 --			¯\_(ツ)_/¯ TRIAL AND ERROR, BAYBEE!!!!!
 
