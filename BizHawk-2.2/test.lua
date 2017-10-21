@@ -4,6 +4,22 @@
 -- For SMW, make sure you have a save state named "DP1.state" at the beginning of a level,
 -- and put a copy in both the Lua folder and the root directory of BizHawk.
 
+-- ADDRESSES TO NOTE:
+-- 0c13 is recovery animation.  					Why is it noteworthy? 	For every frame this is active decrement fitness. 
+--																			(it's initial value is 60 unsure whether this is 
+--																			based on frames)
+
+-- 1f80 is life counter.							Why is it noteworthy? 	Increase time before moving into next genome.  
+--																			Check to see if life counter is zero before dying 
+--																			and then add move into next genome there as well
+
+-- 0bcf	is current health.							Why is it noteworthy? 	Current health is less than it was last time? 
+--																			Terrible! You're not fit! Current health more than 
+--																			it is last time? Oh great! Good job!
+
+-- 1928 COULD BE enemy hit or exploding animation.	Why is it noteworthy? 	We could possibly use this to increment fitness.  
+--																			Blow up a bad guy?
+--																			good for you Mega Bot!
 if gameinfo.getromname() == "Mega Man X (USA)" then
 	Filename = "DP2.state"
 	ButtonNames = {
@@ -154,7 +170,7 @@ function getInputs()
 	end
 	
 	-- console.writeline("Camera X pos:"..camX)		-- camera xpos
-	console.writeline("X Sprite pos:"..megaX)						-- mega man x position
+	-- console.writeline("X Sprite pos:"..megaX)						-- mega man x position
 	if #sprites > 0 and sprites[1]["x"] ~= 0 then
 		-- for i=1,#sprites do
 			-- console.writeline(sprites[i]["x"])
@@ -163,14 +179,14 @@ function getInputs()
 		-- console.writeline("distx:"..distx)
 		-- console.writeline("disty:"..disty)
 		-- console.writeline("")
-		console.writeline("starting")
+		-- console.writeline("starting")
 		-- console.writeline(memory.readbyte(0x0e68))	-- object exists or not
 		-- console.writeline(memory.readbyte(0x0e69))	-- objects action 1
 		-- console.writeline(memory.readbyte(0x0e6a))	-- objects action 2
 		-- console.writeline(memory.readbyte(0x0e6b))	-- ???
 		-- console.writeline(memory.readbyte(0x0e6c))	-- sub-pixel xpos
 		-- console.writeline("Camera X pos:"..memory.readbyte(0x00b4))		-- camera xpos
-		console.writeline("first xpos:"..memory.readbyte(0x0e6d))	-- xpos in pixels 	--if you see above i was using address 22 bytes away from 
+		-- console.writeline("first xpos:"..memory.readbyte(0x0e6d))	-- xpos in pixels 	--if you see above i was using address 22 bytes away from 
 						--					the enemy address putting me at a different address that 
 						--					is listed as having the same title.  I am curious as to 
 						--					whether or not there is a diffence in each value.
@@ -211,7 +227,7 @@ function getInputs()
 		-- console.writeline(memory.readbyte(0x0e8e))	-- ???
 		-- console.writeline(memory.readbyte(0x0e8f))	-- current health
 		-- console.writeline(memory.readbyte(0x0e90))	-- unknown -24 bytes
-		console.writeline("done")
+		-- console.writeline("done")
 	end
 	
 	return inputs
@@ -1171,6 +1187,13 @@ playTopButton = forms.button(form, "Play Top", playTop, 5, 170)
 hideBanner = forms.checkbox(form, "Hide Banner", 5, 190)
 
 
+-- current health variable
+lastHealth = memory.readbyte(0x0bcf)
+-- life counter
+lastLife = memory.readbyte(0x1f90)
+-- ouch animation
+ouch = 0
+
 --------------------------------------------------------------------------------------------
 -- This is where the action starts! 
 --------------------------------------------------------------------------------------------
@@ -1202,7 +1225,7 @@ while true do
 	---------------------------------------------------------------------------------------
 	
 	---------------------------------------------------------------------------------------
-	-- moves it right (?)
+	-- gets how far right it has moved
 	getPositions()
 	if megaX > rightmost then
 		rightmost = megaX
@@ -1213,6 +1236,20 @@ while true do
 	timeout = timeout - 1
 	
 	---------------------------------------------------------------------------------------
+	-- checking if current health is the same as last health
+	local health = memory.readbyte(0x0bcf)
+	if(health < lastHealth) then
+		console.writeline(lastHealth- health)
+		lastHealth = health
+	end
+	
+	---------------------------------------------------------------------------------------
+	--
+	if(memory.readbyte(0xc13) < 1) then
+		ouch = ouch + 1
+	end
+	
+	---------------------------------------------------------------------------------------
 	-- it looks as though the following if statement determines if megaman is moving 
 	-- forward consistently.  If there is a stop, or, say, he is jumping on a wall and 
 	-- moving up but not forward, then the genome is reset
@@ -1220,12 +1257,14 @@ while true do
 	local timeoutBonus = pool.currentFrame / 4
 	if timeout + timeoutBonus <= 0 then
 		local fitness = rightmost - pool.currentFrame / 2
-		
+		console.writeline(health)
 		-- the following code looks like it was more useful for Super Mario World
 		
 		-- if gameinfo.getromname() == "Mega Man X (USA)" and rightmost > 4816 then
 			-- fitness = fitness + 1000
 		-- end
+		
+		
 		
 		-- maybe here... honestly don't know what I meant here.. -_-
 		if fitness == 0 then
@@ -1242,6 +1281,9 @@ while true do
 		console.writeline("Gen " .. pool.generation .. " species " .. pool.currentSpecies .. " genome " .. pool.currentGenome .. " fitness: " .. fitness)
 		pool.currentSpecies = 1
 		pool.currentGenome = 1
+		
+		-- this moves to the next genome
+		-- makes sense!
 		while fitnessAlreadyMeasured() do
 			nextGenome()
 		end
