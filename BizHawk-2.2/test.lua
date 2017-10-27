@@ -4,49 +4,7 @@
 -- For SMW, make sure you have a save state named "DP1.state" at the beginning of a level,
 -- and put a copy in both the Lua folder and the root directory of BizHawk.
 
--- ADDRESSES TO NOTE:
--- 0c13 is recovery animation.  					
--- Why is it noteworthy? 	
----- For every frame this is active decrement fitness. 
----- (it's initial value is 60 unsure whether this is 
----- based on frames)
 
--- 1f80 is life counter.							
--- Why is it noteworthy? 	
----- Increase time before moving into next genome.  
----- Check to see if life counter is zero before dying 
----- and then add move into next genome there as well
-
--- 0bcf	is current health.							
--- Why is it noteworthy? 	
----- Current health is less than it was last time? 
----- Terrible! You're not fit! Current health more than 
----- it is last time? Oh great! Good job!
-
--- 1928 COULD BE enemy hit or exploding animation.	
--- Why is it noteworthy? 	
----- We could possibly use this to increment fitness.  
----- Blow up a bad guy? good for you Mega Bot!
-
--- REVELATIONS:
--- Lorenzo - 10-20-17:								
--- 
--- To be honest, idk what a lot of these Lua functions do, but I just realized
--- there's a difference in read_s16_le and readbyte.  WHAT THAT DIFFERENCE IS!?!?
--- I'll have to look it up. -_-
--- ^update:											
------- readbyte gets mega man x's position in
------- relation to the camera.  read_s16_le
------- gets how far he's travelled forward in 
------- total. 
------- Here's something nice:
------- 	If I use read_s16_le to get enemy 
------- sprites, then suddenly they are seen in
------- the gui box.
------- Thought:
------- 	read_s16_le might be the way to go.
--- Summation:
------- ¯\_(ツ)_/¯ TRIAL AND ERROR, BAYBEE!!!!!
 
 if gameinfo.getromname() == "Mega Man X (USA)" then
 	Filename = "DP2.state"
@@ -892,7 +850,7 @@ end
 
 function initializeRun()
 	savestate.load(Filename);
-	rightmost = 0
+	rightmost = {}
 	pool.currentFrame = 0
 	timeout = TimeoutConstant
 	clearJoypad()
@@ -1209,7 +1167,7 @@ hideBanner = forms.checkbox(form, "Hide Banner", 5, 190)
 -- current health variable
 lastHealth = memory.readbyte(0x0bcf)
 -- life counter
-lastLife = memory.readbyte(0x1f90)
+lastLife = 0
 -- ouch animation
 decrement = 0
 -- megaman is alive
@@ -1222,6 +1180,10 @@ lastCamX = 0
 camMoved = false
 -- reset of too negative
 tooNegative = false
+-- keeps track of current rightmost
+rIndex = 0
+-- reset
+reset = false
 --------------------------------------------------------------------------------------------
 -- This is where the action starts! 
 --------------------------------------------------------------------------------------------
@@ -1234,7 +1196,7 @@ while true do
 
 	local species = pool.species[pool.currentSpecies]
 	local genome = species.genomes[pool.currentGenome]
-	
+	lastLife = memory.read_s16_le(0x1f80)
 	---------------------------------------------------------------------------------------
 	--this displays neural network and its connections
 	if forms.ischecked(showNetwork) then
@@ -1256,6 +1218,13 @@ while true do
 	-- gets how far right it has moved
 	getPositions()
 	
+	---------------------------------------------------------------------------------------
+	-- checking if died
+	-- note: this doesn't work. T-T
+	-- if memory.read_s16_le(0x1f90) < lastLife then
+		-- rightmost.insert(#rightmost, 0)
+	-- end
+	
 	-- if current position is greater than right most than reset timeconstant and 
 	-- set rightmost to current position.
 	-- this needs to be changed for Mega Man X
@@ -1266,6 +1235,7 @@ while true do
 	---- has it moved? ok if both are moving then reset time
 	----
 	if camX ~= lastCamX then
+		print(camX)
 		lastCamX = camX
 		camMoved = true
 	else
@@ -1273,7 +1243,7 @@ while true do
 	end
 	if megaX ~= lastX then
 		if megaX > lastX then
-			rightmost = megaX
+			rightmost[rIndex] = megaX
 			timeout = TimeoutConstant
 		elseif not camMoved then
 			timeout = TimeoutConstant
@@ -1288,6 +1258,7 @@ while true do
 	end
 	timeout = timeout - 1
 	
+	
 	---------------------------------------------------------------------------------------
 	-- checking if current health is the same as last health
 	local health = memory.readbyte(0x0bcf)
@@ -1300,24 +1271,28 @@ while true do
 	if(memory.readbyte(0x0bcf) <= 16) then
 		lastHealth = memory.readbyte(0x0bcf)
 	end
-	---------------------------------------------------------------------------------------
-	--
 	
 	---------------------------------------------------------------------------------------
 	-- is megaman alive?
-	lastLife = memory.readbyte(0x1f90)
 	dead = (lastHealth == 0) and (lastLife == 0)
 	
 
-
 	local timeoutBonus = pool.currentFrame / 4 
 	
+	local total = 0
+	
+	for i = 0,#rightmost do
+		total = total + rightmost[i]
+	end
+	
 	-- is Mega Man X just STANDING there.. -_-
-	if math.floor(rightmost - (pool.currentFrame) / 2 - (timeout + timeoutBonus)*2/3) < -500 then
+	if math.floor(total - (pool.currentFrame) / 2 - (timeout + timeoutBonus)*2/3) < -500 then
 		tooNegative = true
 	else
 		tooNegative = false
 	end
+	
+	
 	---------------------------------------------------------------------------------------
 	-- it looks as though the following if statement determines if megaman is moving 
 	-- forward consistently.  If there is a stop, or, say, he is jumping on a wall and 
@@ -1327,9 +1302,10 @@ while true do
 		-- print("Timeout"..timeout)
 		-- print("Bonus"..timeoutBonus)
 		-- print("Constant"..TimeoutConstant)
-		rightmost = rightmost - decrement 
+		
+		total = total - decrement 
 		decrement = 0
-		local fitness = rightmost - pool.currentFrame / 2
+		local fitness = total - pool.currentFrame / 2
 		lastHealth = 0 
 		-- the following code looks like it was more useful for Super Mario World
 		
@@ -1338,18 +1314,18 @@ while true do
 		-- end
 		
 		-- maybe here... honestly don't know what I meant here.. -_-
-		if fitness == 0 then
-			fitness = -1
+		if total == 0 then
+			total = -1
 		end
-		genome.fitness = fitness
+		genome.fitness = total
 		
 		if fitness > pool.maxFitness then
-			pool.maxFitness = fitness
+			pool.maxFitness = total
 			forms.settext(maxFitnessLabel, "Max Fitness: " .. math.floor(pool.maxFitness))
 			writeFile("backup." .. pool.generation .. "." .. forms.gettext(saveLoadFile))
 		end
 		
-		console.writeline("Gen " .. pool.generation .. " species " .. pool.currentSpecies .. " genome " .. pool.currentGenome .. " fitness: " .. fitness)
+		console.writeline("Gen " .. pool.generation .. " species " .. pool.currentSpecies .. " genome " .. pool.currentGenome .. " fitness: " .. total)
 		pool.currentSpecies = 1
 		pool.currentGenome = 1
 		
@@ -1374,7 +1350,7 @@ while true do
 	end
 	if not forms.ischecked(hideBanner) then
 		gui.drawText(0, 0, "Gen " .. pool.generation .. " species " .. pool.currentSpecies .. " genome " .. pool.currentGenome .. " (" .. math.floor(measured/total*100) .. "%)", 0xFF000000, 11)
-		gui.drawText(0, 12, "Fitness: " .. math.floor(rightmost - (pool.currentFrame) / 2 - (timeout + timeoutBonus)*2/3), 0xFF000000, 11)
+		gui.drawText(0, 12, "Fitness: " .. math.floor(total), 0xFF000000, 11)
 		gui.drawText(100, 12, "Max Fitness: " .. math.floor(pool.maxFitness), 0xFF000000, 11)
 	end
 		
