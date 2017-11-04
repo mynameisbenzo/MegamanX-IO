@@ -850,7 +850,7 @@ end
 
 function initializeRun()
 	savestate.load(Filename);
-	rightmost = {}
+	rightmost = 0
 	pool.currentFrame = 0
 	timeout = TimeoutConstant
 	clearJoypad()
@@ -1184,6 +1184,9 @@ tooNegative = false
 rIndex = 0
 -- reset
 reset = false
+
+
+lastLife = memory.read_s16_le(0x1f90)
 --------------------------------------------------------------------------------------------
 -- This is where the action starts! 
 --------------------------------------------------------------------------------------------
@@ -1196,7 +1199,6 @@ while true do
 
 	local species = pool.species[pool.currentSpecies]
 	local genome = species.genomes[pool.currentGenome]
-	lastLife = memory.read_s16_le(0x1f80)
 	---------------------------------------------------------------------------------------
 	--this displays neural network and its connections
 	if forms.ischecked(showNetwork) then
@@ -1233,19 +1235,31 @@ while true do
 	---- check x's last position in relation to his current
 	---- has he moved? ok now check the camera
 	---- has it moved? ok if both are moving then reset time
-	----
-	if camX ~= lastCamX then
-		print(camX)
-		lastCamX = camX
-		camMoved = true
-	else
-		camMoved = false
-	end
-	if megaX ~= lastX then
+	--
+	-- if camX ~= lastCamX then
+		-- print(camX)
+		-- lastCamX = camX
+		-- camMoved = true
+	-- else
+		-- camMoved = false
+	-- end
+	-- if megaX ~= lastX then
+		-- if megaX > lastX then
+			-- rightmost[rIndex] = megaX
+			-- timeout = TimeoutConstant
+		-- elseif not camMoved then
+			-- timeout = TimeoutConstant
+		-- end
+	-- end
+	
+	if memory.read_s16_le(0x1f90) < lastLife then
+		lastX = megaX
+		timeout = TimeoutConstant
+		lastLife = memory.read_s16_le(0x1f90)
+	elseif megaX ~= lastX then
 		if megaX > lastX then
-			rightmost[rIndex] = megaX
-			timeout = TimeoutConstant
-		elseif not camMoved then
+			rightmost = rightmost + (megaX - lastX)
+			lastX = megaX
 			timeout = TimeoutConstant
 		end
 	end
@@ -1264,6 +1278,10 @@ while true do
 	local health = memory.readbyte(0x0bcf)
 	if(health < lastHealth) then
 		decrement = decrement + (lastHealth - health)
+		
+		print("last"..lastHealth)
+		print("h"..health)
+		print("decre"..decrement)
 	elseif (health > lastHealth) then
 		decrement = decrement - (lastHealth - health)
 	end
@@ -1281,17 +1299,17 @@ while true do
 	
 	local total = 0
 	
-	for i = 0,#rightmost do
-		total = total + rightmost[i]
-	end
+	-- for i = 0,#rightmost do
+		-- total = total + rightmost[i]
+	-- end
 	
 	-- is Mega Man X just STANDING there.. -_-
-	if math.floor(total - (pool.currentFrame) / 2 - (timeout + timeoutBonus)*2/3) < -500 then
+	if math.floor(total - (pool.currentFrame) / 2 - (timeout + timeoutBonus)*2/3) < -250 then
 		tooNegative = true
+		print("bingo")
 	else
 		tooNegative = false
 	end
-	
 	
 	---------------------------------------------------------------------------------------
 	-- it looks as though the following if statement determines if megaman is moving 
@@ -1303,7 +1321,9 @@ while true do
 		-- print("Bonus"..timeoutBonus)
 		-- print("Constant"..TimeoutConstant)
 		
-		total = total - decrement 
+		total = rightmost - decrement 
+		print("R"..rightmost)
+		print("D"..decrement)
 		decrement = 0
 		local fitness = total - pool.currentFrame / 2
 		lastHealth = 0 
